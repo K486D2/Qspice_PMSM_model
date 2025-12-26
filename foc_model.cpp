@@ -15,7 +15,7 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, see
 <https://www.gnu.org/licenses/>.
 */
-// To build with Digital Mars C++ Compiler: 
+// To build with Digital Mars C++ Compiler:
 //
 //    dmc -mn -WD foc_model.cpp kernel32.lib
 
@@ -29,8 +29,6 @@ along with this program; if not, see
 // Constants
 #define const_2pi_3     2.09439510239    // 2*PI/3
 #define const_sqrt3     1.73205080757    // sqrt(3)
-
-extern "C" __declspec(dllexport) void (*bzero)(void *ptr, unsigned int count)   = 0;
 
 union uData
 {
@@ -53,6 +51,14 @@ union uData
 // See https://docs.microsoft.com/en-us/windows/win32/dlls/dllmain for more information.
 int __stdcall DllMain(void *module, unsigned int reason, void *reserved) { return 1; }
 
+void bzero(void *ptr, unsigned int count)
+{
+   unsigned char *first = (unsigned char *) ptr;
+   unsigned char *last  = first + count;
+   while(first < last)
+      *first++ = '\0';
+}
+
 // #undef pin names lest they collide with names in any header file(s) you might include.
 #undef i_U
 #undef i_V
@@ -65,7 +71,6 @@ int __stdcall DllMain(void *module, unsigned int reason, void *reserved) { retur
 #undef id_ref
 #undef iq_ref
 #undef Vdc
-#undef dbg
 
 struct sFOC_MODEL
 {

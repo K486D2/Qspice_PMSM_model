@@ -15,7 +15,7 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, see
 <https://www.gnu.org/licenses/>.
 */
-// To build with Digital Mars C++ Compiler: 
+// To build with Digital Mars C++ Compiler:
 //
 //    dmc -mn -WD svpwm_model.cpp kernel32.lib
 
@@ -33,8 +33,6 @@ along with this program; if not, see
 #define const_2_sqrt3   1.15470053838   // =2/sqrt(3)
 #define const_pi_6      0.5235987756    // =PI/6
 #define const_pi_3      1.0471975512    // =PI/3
-
-extern "C" __declspec(dllexport) void (*bzero)(void *ptr, unsigned int count)   = 0;
 
 double fmin(double, double);
 double f_eval(double);
@@ -59,6 +57,14 @@ union uData
 // int DllMain() must exist and return 1 for a process to load the .DLL
 // See https://docs.microsoft.com/en-us/windows/win32/dlls/dllmain for more information.
 int __stdcall DllMain(void *module, unsigned int reason, void *reserved) { return 1; }
+
+void bzero(void *ptr, unsigned int count)
+{
+   unsigned char *first = (unsigned char *) ptr;
+   unsigned char *last  = first + count;
+   while(first < last)
+      *first++ = '\0';
+}
 
 // #undef pin names lest they collide with names in any header file(s) you might include.
 #undef U
@@ -247,7 +253,7 @@ extern "C" __declspec(dllexport) void svpwm_model(struct sSVPWM_MODEL **opaque, 
          // Next PWM cycle start
          inst->t_next_cycle = (inst->ticks+1)*Tpwm;
 
-         // Update tick count 
+         // Update tick count
          inst->ticks += 1;
 
          // Sync signal
@@ -262,7 +268,7 @@ extern "C" __declspec(dllexport) void svpwm_model(struct sSVPWM_MODEL **opaque, 
          slope = 1;  // positive
       else
          slope = 0;  // negative
-      
+
       // Change corresponding output and update phase status
       if(not(inst->s_U)){   // Phase U
          if(t >= inst->t_mU_up && slope){
@@ -301,12 +307,12 @@ extern "C" __declspec(dllexport) void svpwm_model(struct sSVPWM_MODEL **opaque, 
          }
       }
 
-      // Update next event      
-      inst->t_nextE = t + fmin(f_eval(inst->t_next_cycle-t), 
-         fmin(f_eval(inst->t_mU_down-t), 
-            fmin(f_eval(inst->t_mV_down-t), 
-               fmin(f_eval(inst->t_mW_down-t), 
-                  fmin(f_eval(inst->t_mU_up-t), 
+      // Update next event
+      inst->t_nextE = t + fmin(f_eval(inst->t_next_cycle-t),
+         fmin(f_eval(inst->t_mU_down-t),
+            fmin(f_eval(inst->t_mV_down-t),
+               fmin(f_eval(inst->t_mW_down-t),
+                  fmin(f_eval(inst->t_mU_up-t),
                      fmin(f_eval(inst->t_mV_up-t), f_eval(inst->t_mW_up-t)))))));
 
    }

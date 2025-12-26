@@ -15,7 +15,7 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, see
 <https://www.gnu.org/licenses/>.
 */
-// To build with Digital Mars C++ Compiler: 
+// To build with Digital Mars C++ Compiler:
 //
 //    dmc -mn -WD deadtime_model.cpp kernel32.lib
 
@@ -23,8 +23,6 @@ along with this program; if not, see
 
 // Maximum rise/fall time
 #define dt_max 10e-9
-
-extern "C" __declspec(dllexport) void (*bzero)(void *ptr, unsigned int count)   = 0;
 
 double fmin(double, double);
 double f_eval(double);
@@ -49,6 +47,14 @@ union uData
 // int DllMain() must exist and return 1 for a process to load the .DLL
 // See https://docs.microsoft.com/en-us/windows/win32/dlls/dllmain for more information.
 int __stdcall DllMain(void *module, unsigned int reason, void *reserved) { return 1; }
+
+void bzero(void *ptr, unsigned int count)
+{
+   unsigned char *first = (unsigned char *) ptr;
+   unsigned char *last  = first + count;
+   while(first < last)
+      *first++ = '\0';
+}
 
 // #undef pin names lest they collide with names in any header file(s) you might include.
 #undef U
@@ -96,7 +102,6 @@ extern "C" __declspec(dllexport) void deadtime_model(struct sDEADTIME_MODEL **op
    {
       *opaque = (struct sDEADTIME_MODEL *) malloc(sizeof(struct sDEADTIME_MODEL));
       bzero(*opaque, sizeof(struct sDEADTIME_MODEL));
-      //(*opaque)->delta_t = 1e3;
    }
    struct sDEADTIME_MODEL *inst = *opaque;
 
@@ -109,7 +114,7 @@ extern "C" __declspec(dllexport) void deadtime_model(struct sDEADTIME_MODEL **op
    if(t >= inst->t_nextE){
 
       inst->delta_t = dt_max;
-      
+
       if(t >= inst->t_U){
          if(inst->HS_U_flag){
             HS_U = 1;
@@ -138,7 +143,7 @@ extern "C" __declspec(dllexport) void deadtime_model(struct sDEADTIME_MODEL **op
          if(inst->LS_W_flag){
             LS_W = 1;
             inst->LS_W_flag = 0;
-         }   
+         }
       }
    }
 
@@ -197,8 +202,8 @@ extern "C" __declspec(dllexport) void deadtime_model(struct sDEADTIME_MODEL **op
    inst->p_V = V;
    inst->p_W = W;
 
-   // Update next event      
-   inst->t_nextE = t + fmin(f_eval(inst->t_U-t), 
+   // Update next event
+   inst->t_nextE = t + fmin(f_eval(inst->t_U-t),
       fmin(f_eval(inst->t_V-t),f_eval(inst->t_W-t)));
 
 }

@@ -15,7 +15,7 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, see
 <https://www.gnu.org/licenses/>.
 */
-// To build with Digital Mars C++ Compiler: 
+// To build with Digital Mars C++ Compiler:
 //
 //    dmc -mn -WD pmsm_model_dll.cpp kernel32.lib
 
@@ -25,8 +25,6 @@ along with this program; if not, see
 #ifndef PI
 #define PI 3.14159265359
 #endif
-
-extern "C" __declspec(dllexport) void (*bzero)(void *ptr, unsigned int count)   = 0;
 
 union uData
 {
@@ -49,6 +47,14 @@ union uData
 // See https://docs.microsoft.com/en-us/windows/win32/dlls/dllmain for more information.
 int __stdcall DllMain(void *module, unsigned int reason, void *reserved) { return 1; }
 
+void bzero(void *ptr, unsigned int count)
+{
+   unsigned char *first = (unsigned char *) ptr;
+   unsigned char *last  = first + count;
+   while(first < last)
+      *first++ = '\0';
+}
+
 // #undef pin names lest they collide with names in any header file(s) you might include.
 #undef u_vW
 #undef u_vV
@@ -66,7 +72,7 @@ int __stdcall DllMain(void *module, unsigned int reason, void *reserved) { retur
 
 struct sPMSM_MODEL_DLL
 {
-   // declare the structure here
+  // declare the structure here
    double x_th_n1;    // Previous theta
    double x_w_n1;     // Previous omega
    double y_tq_n1;    // Previous torque
